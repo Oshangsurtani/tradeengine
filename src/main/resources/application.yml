@@ -1,0 +1,61 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/trade}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+  redis:
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Enable separate health probes for Kubernetes.  When set to true,
+# Spring Boot will expose /actuator/health/liveness and /actuator/health/readiness
+# endpoints which can be used for liveness and readiness checks in a
+# Kubernetes deployment.  See the provided k8s deployment manifest for
+# example usage.
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  api-key: secret-key
+
+# Configuration for Binance WebSocket ingestion.  When enabled, a
+# background client connects to the Binance stream defined by the URL
+# and forwards trade updates as market orders into the matching
+# engine.  Instrument mapping must correspond to the pairs traded in
+# this assignment (e.g. BTC-USD).  See BinanceWebSocketClient for
+# details.
+binance:
+  websocket:
+    enabled: true
+    # Example: BTC/USDT trades stream.  See Binance documentation for
+    # additional instruments.  Format is lower case symbol@trade.
+    url: wss://stream.binance.com:9443/ws/btcusdt@trade
+
+# Snapshot configuration.  Snapshots capture the current order book
+# for each instrument and are stored in the orderbook_snapshots table.
+# They are created automatically on a fixed interval (in milliseconds)
+# and can also be triggered via the admin endpoint.
+snapshot:
+  enabled: true
+  # Interval in milliseconds between automatic snapshots (default 5 minutes)
+  interval:
+    millis: 300000

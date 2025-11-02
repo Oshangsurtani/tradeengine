@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback configuration to produce structured JSON logs.  This uses
+  logstash-logback-encoder to output each log record as a JSON object
+  containing the timestamp, log level, thread name, logger name,
+  message and stack trace fields.  JSON logs facilitate ingestion
+  into centralised log aggregators (e.g. ELK, Loki) and ease
+  correlation with metrics and traces.
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <level/>
+                <threadName/>
+                <loggerName/>
+                <pattern>
+                    <pattern>{"message": "%msg", "stack_trace": "%ex"}</pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

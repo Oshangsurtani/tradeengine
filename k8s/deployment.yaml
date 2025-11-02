@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-engine
+  labels:
+    app: trade-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-engine
+  template:
+    metadata:
+      labels:
+        app: trade-engine
+    spec:
+      containers:
+        - name: app
+          image: trade-engine:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/trade
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: trade-postgres
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: trade-postgres
+                  key: password
+            - name: SPRING_REDIS_HOST
+              value: redis
+            - name: SPRING_REDIS_PORT
+              value: "6379"
+            - name: APP_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: trade-api-key
+                  key: apiKey
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
